@@ -12,6 +12,7 @@ import { AuthService } from '../../services/auth';
 export class Login implements OnInit {
   loginForm!: FormGroup;
   isSubmitted = false;
+  loginError = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -27,10 +28,15 @@ export class Login implements OnInit {
 
   onSubmit(): void {
     this.isSubmitted = true;
+    this.loginError = false;
     
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      this.authService.login(email, password);
+      const success = this.authService.login(email, password);
+      
+      if (!success) {
+        this.loginError = true;
+      }
     } else {
       console.log('Formulário inválido:', this.loginForm.errors);
     }

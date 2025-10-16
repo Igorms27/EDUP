@@ -1,60 +1,54 @@
 <div class="login-container">
   <div class="login-card">
-    <!-- Título do Sistema -->
     <div class="login-header">
-      <h1>EduManage</h1>
-      <p>Sistema de Gestão Escolar</p>
+      <h1>Login</h1>
+      <p>Entre com suas credenciais</p>
     </div>
-
-    <!-- Formulário de Login -->
+    
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <!-- Campo Email -->
       <div class="form-group">
-        <label for="email">E-mail ou Usuário</label>
-        <input
-          type="email"
-          id="email"
+        <label for="email">Email:</label>
+        <input 
+          type="email" 
+          id="email" 
           formControlName="email"
           class="form-input"
-          [class.error]="email?.invalid && (email?.dirty || email?.touched || isSubmitted)"
-          placeholder="seu@email.com"
-        />
-        <div *ngIf="email?.invalid && (email?.dirty || email?.touched || isSubmitted)" class="error-message">
-          <span *ngIf="email?.errors?.['required']">E-mail é obrigatório</span>
-          <span *ngIf="email?.errors?.['email']">Por favor, insira um e-mail válido</span>
+          [class.error]="email?.invalid && (email?.touched || isSubmitted)"
+          placeholder="Digite seu email"
+        >
+        <div *ngIf="email?.invalid && (email?.touched || isSubmitted)" class="error-message">
+          <span *ngIf="email?.errors?.['required']">Email é obrigatório</span>
+          <span *ngIf="email?.errors?.['email']">Email inválido</span>
         </div>
       </div>
 
-      <!-- Campo Senha -->
       <div class="form-group">
-        <label for="password">Senha</label>
-        <input
-          type="password"
-          id="password"
+        <label for="password">Senha:</label>
+        <input 
+          type="password" 
+          id="password" 
           formControlName="password"
           class="form-input"
-          [class.error]="password?.invalid && (password?.dirty || password?.touched || isSubmitted)"
-          placeholder="••••••••"
-        />
-        <div *ngIf="password?.invalid && (password?.dirty || password?.touched || isSubmitted)" class="error-message">
+          [class.error]="password?.invalid && (password?.touched || isSubmitted)"
+          placeholder="Digite sua senha"
+        >
+        <div *ngIf="password?.invalid && (password?.touched || isSubmitted)" class="error-message">
           <span *ngIf="password?.errors?.['required']">Senha é obrigatória</span>
           <span *ngIf="password?.errors?.['minlength']">Senha deve ter pelo menos 6 caracteres</span>
         </div>
       </div>
 
-      <!-- Botão de Login -->
-      <button
-        type="submit"
-        class="login-button"
-        [disabled]="loginForm.invalid"
-      >
+      <div *ngIf="loginError" class="error-message" style="text-align: center; margin-top: 1rem;">
+        Email ou senha incorretos
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid" class="login-button">
         Entrar
       </button>
     </form>
 
-    <!-- Informação adicional -->
     <div class="login-footer">
-      <p>Entre com suas credenciais para acessar o sistema</p>
+      <p>Sistema de Gestão Educacional</p>
     </div>
   </div>
 </div>
