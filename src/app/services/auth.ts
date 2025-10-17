@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 export interface User {
   id: string;
   email: string;
-  password: string;
+  password?: string;
   name: string;
-  type: 'student' | 'teacher';
+  type: 'student' | 'teacher' | 'coordinator';
 }
 
 @Injectable({
@@ -31,6 +31,13 @@ export class AuthService {
       password: '123456',
       name: 'Maria Santos',
       type: 'teacher'
+    },
+    {
+      id: '3',
+      email: 'coordenador@teste.com',
+      password: '123456',
+      name: 'Carlos Coordenador',
+      type: 'coordinator'
     }
   ];
 
@@ -47,7 +54,9 @@ export class AuthService {
       if (user.type === 'student') {
         this.router.navigate(['/student-dashboard']);
       } else if (user.type === 'teacher') {
-        this.router.navigate(['/teacher-dashboard']);
+        this.router.navigate(['/professor-dashboard']);
+      } else if (user.type === 'coordinator') {
+        this.router.navigate(['/coordinator-dashboard']);
       }
       
       return true;

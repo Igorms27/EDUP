@@ -1,0 +1,233 @@
+<div class="dashboard">
+  <!-- Header -->
+  <header class="header">
+    <div class="professor-info">
+      <h1>{{ professorName }}</h1>
+      <p>{{ professorSubject }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="chat-btn" (click)="openChatModal()">
+        💬 Chat
+        <span class="unread-badge" *ngIf="unreadMessages() > 0">{{ unreadMessages() }}</span>
+      </button>
+      <button class="logout" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Estatísticas Gerais -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <h3>{{ getTotalStudents() }}</h3>
+          <p>Total de Alunos</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <h3>{{ getAverageGrade() }}</h3>
+          <p>Média Geral</p>
+        </div>
+      </div>
+      
+      <div class="stat-card recovery">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <h3>{{ getStudentsInRecovery() }}</h3>
+          <p>Em Recuperação</p>
+        </div>
+      </div>
+      
+      <div class="stat-card failed">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+          <h3>{{ getStudentsFailed() }}</h3>
+          <p>Reprovados</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seleção de Turma -->
+  <section class="classes-section">
+    <h2>Minhas Turmas</h2>
+    <div class="classes-grid">
+      <div class="class-card" 
+           *ngFor="let classItem of classes" 
+           [class.selected]="selectedClass?.id === classItem.id"
+           (click)="selectClass(classItem)">
+        <h3>{{ classItem.name }}</h3>
+        <p><strong>Horário:</strong> {{ classItem.schedule }}</p>
+        <p><strong>Sala:</strong> {{ classItem.room }}</p>
+        <p><strong>Alunos:</strong> {{ classItem.students.length }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista de Alunos -->
+  <section class="students-section" *ngIf="selectedClass">
+    <h2>Alunos - {{ selectedClass.name }}</h2>
+    <div class="students-table-container">
+      <table class="students-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Matrícula</th>
+            <th>Nota</th>
+            <th>Faltas</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of selectedClass.students" 
+              [class.selected]="selectedStudent?.id === student.id"
+              (click)="selectStudent(student)">
+            <td class="student-name">{{ student.name }}</td>
+            <td>{{ student.enrollment }}</td>
+            <td class="grade-cell">
+              <span class="grade">{{ student.grade }}</span>
+            </td>
+            <td class="absence-cell">
+              <span class="absence-count">{{ student.absences }}/{{ student.maxAbsences }}</span>
+            </td>
+            <td>
+              <span class="status-badge" [class]="getStatusClass(student.status)">
+                {{ getStatusText(student.status) }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="action-btn grade-btn" (click)="openGradeModal(student); $event.stopPropagation()">
+                📝 Nota
+              </button>
+              <button class="action-btn absence-btn" (click)="openAbsenceModal(student); $event.stopPropagation()">
+                📅 Faltas
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Modal de Nota -->
+  <div class="modal-overlay" *ngIf="showGradeModal" (click)="closeGradeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Editar Nota - {{ selectedStudent?.name }}</h3>
+        <button class="close-btn" (click)="closeGradeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nova Nota:</label>
+          <input type="number" 
+                 [(ngModel)]="newGrade" 
+                 min="0" 
+                 max="10" 
+                 step="0.1"
+                 class="form-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeGradeModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveGrade()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Faltas -->
+  <div class="modal-overlay" *ngIf="showAbsenceModal" (click)="closeAbsenceModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Editar Faltas - {{ selectedStudent?.name }}</h3>
+        <button class="close-btn" (click)="closeAbsenceModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Número de Faltas:</label>
+          <input type="number" 
+                 [(ngModel)]="newAbsences" 
+                 min="0" 
+                 max="40"
+                 class="form-input">
+        </div>
+        <div class="info-text">
+          <p><strong>Limite:</strong> 20 faltas</p>
+          <p><strong>Aulas para repor:</strong> {{ calculateClassesToRecover(newAbsences) }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAbsenceModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveAbsences()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Chat -->
+  <div class="modal-overlay" *ngIf="showChatModal" (click)="closeChatModal()">
+    <div class="chat-modal" (click)="$event.stopPropagation()">
+      <div class="chat-header">
+        <h3>💬 Mensagens dos Alunos</h3>
+        <button class="close-btn" (click)="closeChatModal()">✕</button>
+      </div>
+
+      <!-- Lista de Estudantes -->
+      <div class="students-list">
+        <div class="student-item" 
+             *ngFor="let student of getStudentsWithMessages()"
+             [class.selected]="selectedStudentForChat?.id === student.id"
+             (click)="selectStudentForChat(student)">
+          <div class="student-avatar">👨‍🎓</div>
+          <div class="student-info">
+            <h4>{{ student.name }}</h4>
+            <p>{{ student.enrollment }}</p>
+            <span class="unread-indicator" *ngIf="getUnreadCountForStudent(student.id) > 0">
+              {{ getUnreadCountForStudent(student.id) }} não lidas
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagens -->
+      <div class="chat-messages" *ngIf="selectedStudentForChat">
+        <div class="conversation-header">
+          <h4>{{ selectedStudentForChat.name }}</h4>
+          <p>{{ selectedStudentForChat.enrollment }}</p>
+        </div>
+        
+        <div class="messages-container">
+          <div class="message" 
+               *ngFor="let message of filteredChatMessages"
+               [class.unread]="!message.read"
+               [class.professor-message]="message.isFromProfessor">
+            <div class="message-content">
+              <p>{{ message.message }}</p>
+              <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagem quando nenhum aluno está selecionado -->
+      <div class="no-selection-message" *ngIf="!selectedStudentForChat">
+        <p>👆 Selecione um aluno à esquerda para iniciar uma conversa</p>
+      </div>
+
+      <!-- Input de mensagem -->
+      <div class="chat-input" *ngIf="selectedStudentForChat">
+        <input 
+          type="text" 
+          [(ngModel)]="newMessage" 
+          placeholder="Digite sua resposta para {{ selectedStudentForChat.name }}..."
+          (keyup.enter)="sendMessage()"
+          class="message-input">
+        <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

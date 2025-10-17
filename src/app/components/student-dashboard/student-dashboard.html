@@ -1,0 +1,173 @@
+<div class="dashboard">
+  <!-- Header Simples -->
+  <header class="header">
+    <div class="student-info">
+      <h1>{{ studentName }}</h1>
+      <p>{{ course }}</p>
+    </div>
+    <button class="logout" (click)="logout()">Sair</button>
+  </header>
+
+  <!-- Resumo -->
+  <div class="summary">
+    <div class="summary-item">
+      <span class="label">Média Geral:</span>
+      <span class="value">{{ averageGrade() }}</span>
+    </div>
+    <div class="summary-item" *ngIf="totalClassesToRecover() > 0">
+      <span class="label">Aulas para Repor:</span>
+      <span class="value warning">{{ totalClassesToRecover() }}</span>
+    </div>
+  </div>
+
+  <!-- Botão para Solicitar Reposição -->
+  <div class="recovery-section" *ngIf="totalClassesToRecover() > 0">
+    <button class="recovery-btn" (click)="requestClassRecovery()">
+      📅 Solicitar Reposição de Aulas
+    </button>
+  </div>
+
+  <!-- Solicitações de Reposição -->
+  <div class="requests-section" *ngIf="recoveryRequests.length > 0">
+    <h2>📋 Minhas Solicitações de Reposição</h2>
+    <div class="requests-list">
+      <div class="request-card" 
+           *ngFor="let request of recoveryRequests"
+           [class]="getRequestStatusClass(request.status)">
+        <div class="request-header">
+          <div class="request-info">
+            <h4>{{ request.subject }}</h4>
+            <p>{{ request.professor }}</p>
+          </div>
+          <div class="request-status">
+            <span class="status-badge" [class]="getRequestStatusClass(request.status)">
+              {{ getRequestStatusText(request.status) }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="request-details">
+          <div class="detail-item">
+            <strong>Aulas para repor:</strong> {{ request.classesToRecover }}
+          </div>
+          <div class="detail-item">
+            <strong>Motivo:</strong> {{ request.reason }}
+          </div>
+          <div class="detail-item">
+            <strong>Data da solicitação:</strong> {{ formatDate(request.requestDate) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de Matérias -->
+  <div class="subjects">
+    <h2>Matérias</h2>
+    <div class="subject-list">
+      <div class="subject-item" *ngFor="let subject of subjects">
+        <div class="subject-info">
+          <div class="subject-name">{{ subject.name }}</div>
+          <div class="professor-info">
+            <span class="professor-name">{{ subject.professor }}</span>
+            <button class="chat-btn" (click)="getProfessorBySubject(subject.name) && openChat(getProfessorBySubject(subject.name)!)">
+              💬 Chat
+            </button>
+          </div>
+        </div>
+        <div class="subject-details">
+          <div class="grade">
+            <span class="number">{{ subject.grade }}</span>
+            <span class="status" [class]="getStatusClass(subject.grade)">
+              {{ getStatus(subject.grade) }}
+            </span>
+          </div>
+          <div class="absences">
+            Faltas: {{ subject.absences }}/{{ subject.maxAbsences }}
+          </div>
+          <div class="recovery" *ngIf="subject.classesToRecover > 0">
+            Repor: {{ subject.classesToRecover }} aulas
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Solicitação de Reposição -->
+  <div class="modal-overlay" *ngIf="showRecoveryModal" (click)="closeRecoveryModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📅 Solicitar Reposição de Aulas</h3>
+        <button class="close-btn" (click)="closeRecoveryModal()">✕</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedSubject">
+        <div class="subject-summary">
+          <h4>{{ selectedSubject.name }}</h4>
+          <p><strong>Professor:</strong> {{ selectedSubject.professor }}</p>
+          <p><strong>Aulas para repor:</strong> {{ selectedSubject.classesToRecover }}</p>
+        </div>
+
+        <div class="form-group">
+          <label for="recoveryReason">Motivo da solicitação:</label>
+          <textarea 
+            id="recoveryReason"
+            [(ngModel)]="recoveryReason" 
+            placeholder="Descreva o motivo pelo qual você precisa repor estas aulas..."
+            class="form-textarea"
+            rows="4">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeRecoveryModal()">Cancelar</button>
+        <button class="btn-save" (click)="submitRecoveryRequest()" [disabled]="!recoveryReason.trim()">
+          📤 Enviar Solicitação
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Modal -->
+  <div class="chat-overlay" *ngIf="showChat" (click)="closeChat()">
+    <div class="chat-modal" (click)="$event.stopPropagation()">
+      <div class="chat-header">
+        <div class="professor-info">
+          <span class="professor-avatar">{{ selectedProfessor?.avatar }}</span>
+          <div class="professor-details">
+            <h3>{{ selectedProfessor?.name }}</h3>
+            <p>{{ selectedProfessor?.subject }}</p>
+            <span class="online-status" [class]="selectedProfessor?.online ? 'online' : 'offline'">
+              {{ selectedProfessor?.online ? '🟢 Online' : '🔴 Offline' }}
+            </span>
+          </div>
+        </div>
+        <button class="close-chat" (click)="closeChat()">✕</button>
+      </div>
+
+      <div class="chat-messages">
+        <div class="message" 
+             *ngFor="let message of getMessagesForProfessor(selectedProfessor?.id || 0)"
+             [class]="message.sender">
+          <div class="message-content">
+            <p>{{ message.message }}</p>
+            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input">
+        <input 
+          type="text" 
+          [(ngModel)]="newMessage" 
+          placeholder="Digite sua mensagem..."
+          (keyup.enter)="sendMessage()"
+          class="message-input">
+        <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

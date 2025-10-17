@@ -1,0 +1,282 @@
+<div class="dashboard">
+  <!-- Header -->
+  <header class="header">
+    <div class="coordinator-info">
+      <h1>{{ coordinatorName }}</h1>
+      <p>Coordenador Acadêmico</p>
+    </div>
+    <div class="header-actions">
+      <button class="chat-btn" (click)="openChatModal()">
+        💬 Chat com Professores
+        <span class="unread-badge" *ngIf="unreadMessages() > 0">{{ unreadMessages() }}</span>
+      </button>
+      <button class="logout" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Estatísticas Gerais -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-content">
+          <h3>{{ students.length }}</h3>
+          <p>Total de Solicitações</p>
+        </div>
+      </div>
+      
+      <div class="stat-card pending">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <h3>{{ pendingRequests() }}</h3>
+          <p>Solicitações Pendentes</p>
+        </div>
+      </div>
+      
+      <div class="stat-card approved">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>{{ getStudentsByStatus('approved').length }}</h3>
+          <p>Aprovadas</p>
+        </div>
+      </div>
+      
+      <div class="stat-card rejected">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+          <h3>{{ getStudentsByStatus('rejected').length }}</h3>
+          <p>Rejeitadas</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="filters-section">
+    <h2>Solicitações de Reposição de Aulas</h2>
+    <div class="filters">
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'all'"
+        (click)="filterStatus = 'all'">
+        Todas
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'pending'"
+        (click)="filterStatus = 'pending'">
+        Pendentes
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'approved'"
+        (click)="filterStatus = 'approved'">
+        Aprovadas
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'rejected'"
+        (click)="filterStatus = 'rejected'">
+        Rejeitadas
+      </button>
+    </div>
+  </section>
+
+  <!-- Lista de Solicitações -->
+  <section class="requests-section">
+    <div class="requests-table-container">
+      <table class="requests-table">
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th>Matrícula</th>
+            <th>Matéria</th>
+            <th>Professor</th>
+            <th>Aulas para Repor</th>
+            <th>Motivo</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of getFilteredStudents()" 
+              [class.selected]="selectedStudent?.id === student.id"
+              (click)="selectStudent(student)">
+            <td class="student-name">{{ student.name }}</td>
+            <td>{{ student.enrollment }}</td>
+            <td>{{ student.subject }}</td>
+            <td>{{ student.professor }}</td>
+            <td class="classes-cell">
+              <span class="classes-count">{{ student.classesToRecover }}</span>
+            </td>
+            <td class="reason-cell">{{ student.reason }}</td>
+            <td class="date-cell">{{ formatDate(student.requestDate) }}</td>
+            <td>
+              <span class="status-badge" [class]="getStatusClass(student.status)">
+                {{ getStatusText(student.status) }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button 
+                class="action-btn schedule-btn" 
+                *ngIf="student.status === 'pending'"
+                (click)="openScheduleModal(student); $event.stopPropagation()">
+                📅 Agendar
+              </button>
+              <button 
+                class="action-btn reject-btn" 
+                *ngIf="student.status === 'pending'"
+                (click)="rejectRequest(); $event.stopPropagation()">
+                ❌ Rejeitar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Modal de Agendamento -->
+  <div class="modal-overlay" *ngIf="showScheduleModal" (click)="closeScheduleModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📅 Agendar Reposição de Aula</h3>
+        <button class="close-btn" (click)="closeScheduleModal()">✕</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedStudent">
+        <div class="student-summary">
+          <h4>{{ selectedStudent.name }}</h4>
+          <p><strong>Matéria:</strong> {{ selectedStudent.subject }}</p>
+          <p><strong>Professor:</strong> {{ selectedStudent.professor }}</p>
+          <p><strong>Aulas para repor:</strong> {{ selectedStudent.classesToRecover }}</p>
+        </div>
+
+        <!-- Seleção de Horário -->
+        <div class="schedule-selection">
+          <h4>Horários Disponíveis:</h4>
+          <div class="schedules-grid">
+            <div class="schedule-card" 
+                 *ngFor="let schedule of getAvailableSchedulesForSubject(selectedStudent.subject)"
+                 [class.selected]="selectedSchedule?.id === schedule.id"
+                 (click)="onScheduleSelected(schedule)">
+              <div class="schedule-day">{{ schedule.day }}</div>
+              <div class="schedule-time">{{ schedule.time }}</div>
+              <div class="schedule-room">{{ schedule.room }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seleção de Computador -->
+        <div class="computer-selection" *ngIf="selectedSchedule">
+          <h4>Computadores Disponíveis - {{ selectedSchedule.room }}:</h4>
+          <div class="computers-grid">
+            <div class="computer-card" 
+                 *ngFor="let computer of getAvailableComputersForSchedule(selectedSchedule)"
+                 [class.selected]="selectedComputer?.id === computer.id"
+                 (click)="selectedComputer = computer">
+              <div class="computer-number">{{ computer.number }}</div>
+              <div class="computer-specs">{{ computer.specifications }}</div>
+              <div class="computer-status available">Disponível</div>
+            </div>
+          </div>
+          
+          <div class="no-computers" *ngIf="getAvailableComputersForSchedule(selectedSchedule).length === 0">
+            <p>⚠️ Nenhum computador disponível neste horário.</p>
+          </div>
+        </div>
+
+        <!-- Resumo da Seleção -->
+        <div class="selection-summary" *ngIf="selectedSchedule && selectedComputer">
+          <h4>📋 Resumo do Agendamento:</h4>
+          <div class="summary-details">
+            <div class="summary-item">
+              <strong>Data:</strong> {{ selectedSchedule.day }}
+            </div>
+            <div class="summary-item">
+              <strong>Horário:</strong> {{ selectedSchedule.time }}
+            </div>
+            <div class="summary-item">
+              <strong>Sala:</strong> {{ selectedSchedule.room }}
+            </div>
+            <div class="summary-item">
+              <strong>Computador:</strong> {{ selectedComputer.number }}
+            </div>
+            <div class="summary-item">
+              <strong>Especificações:</strong> {{ selectedComputer.specifications }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeScheduleModal()">Cancelar</button>
+        <button class="btn-save" 
+                (click)="approveRequest()" 
+                [disabled]="!selectedSchedule || !selectedComputer">
+          ✅ Aprovar e Agendar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Chat -->
+  <div class="modal-overlay" *ngIf="showChatModal" (click)="closeChatModal()">
+    <div class="chat-modal" (click)="$event.stopPropagation()">
+      <div class="chat-header">
+        <h3>💬 Chat com Professores</h3>
+        <button class="close-btn" (click)="closeChatModal()">✕</button>
+      </div>
+
+      <!-- Lista de Professores -->
+      <div class="professors-list">
+        <div class="professor-item" 
+             *ngFor="let professor of professors"
+             [class.selected]="selectedProfessor?.id === professor.id"
+             (click)="selectProfessor(professor)">
+          <div class="professor-avatar">{{ professor.avatar }}</div>
+          <div class="professor-info">
+            <h4>{{ professor.name }}</h4>
+            <p>{{ professor.subject }}</p>
+            <span class="online-status" [class]="professor.online ? 'online' : 'offline'">
+              {{ professor.online ? '🟢 Online' : '🔴 Offline' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagens -->
+      <div class="chat-messages" *ngIf="selectedProfessor">
+        <div class="conversation-header">
+          <h4>{{ selectedProfessor.name }}</h4>
+          <p>{{ selectedProfessor.subject }}</p>
+        </div>
+        
+        <div class="messages-container">
+          <div class="message" 
+               *ngFor="let message of getMessagesForProfessor(selectedProfessor.id)"
+               [class.coordinator-message]="message.isFromCoordinator">
+            <div class="message-content">
+              <p>{{ message.message }}</p>
+              <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input de mensagem -->
+      <div class="chat-input" *ngIf="selectedProfessor">
+        <input 
+          type="text" 
+          [(ngModel)]="newMessage" 
+          placeholder="Digite sua mensagem para {{ selectedProfessor.name }}..."
+          (keyup.enter)="sendMessage()"
+          class="message-input">
+        <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
