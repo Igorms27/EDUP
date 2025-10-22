@@ -93,6 +93,22 @@ export class CoordinatorDashboard implements OnInit {
   unreadMessages = signal(0);
   pendingRequests = signal(0);
 
+  // Adicionar novas propriedades para modais
+  showConfirmModal = false;
+  showSuccessModal = false;
+  confirmAction: (() => void) | null = null;
+  confirmMessage = {
+    title: '',
+    message: '',
+    confirmText: '',
+    cancelText: 'Cancelar'
+  };
+  successMessage = {
+    title: '',
+    details: [] as { label: string, value: string }[],
+    isSuccess: true
+  };
+
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
@@ -281,34 +297,122 @@ export class CoordinatorDashboard implements OnInit {
       this.selectedSchedule.available = false;
       this.selectedComputer.available = false;
       
-      // Adicionar informações de agendamento ao estudante
       this.selectedStudent.scheduledDate = this.selectedSchedule.day;
       this.selectedStudent.scheduledTime = this.selectedSchedule.time;
       this.selectedStudent.assignedComputer = this.selectedComputer.number;
       this.selectedStudent.assignedRoom = this.selectedSchedule.room;
       
+      const studentInfo = {
+        name: this.selectedStudent.name,
+        subject: this.selectedStudent.subject,
+        day: this.selectedSchedule.day,
+        time: this.selectedSchedule.time,
+        room: this.selectedSchedule.room,
+        computer: this.selectedComputer.number
+      };
+      
       this.closeScheduleModal();
       this.calculatePendingRequests();
       
-      // Mostrar confirmação
-      alert(`Solicitação aprovada com sucesso!\n\n` +
-            `Aluno: ${this.selectedStudent.name}\n` +
-            `Matéria: ${this.selectedStudent.subject}\n` +
-            `Data: ${this.selectedSchedule.day}\n` +
-            `Horário: ${this.selectedSchedule.time}\n` +
-            `Sala: ${this.selectedSchedule.room}\n` +
-            `Computador: ${this.selectedComputer.number}`);
+      // Mostrar modal de sucesso
+      this.showSuccessMessage(
+        'Solicitação Aprovada!',
+        [
+          { label: 'Aluno', value: studentInfo.name },
+          { label: 'Matéria', value: studentInfo.subject },
+          { label: 'Data', value: studentInfo.day },
+          { label: 'Horário', value: studentInfo.time },
+          { label: 'Sala', value: studentInfo.room },
+          { label: 'Computador', value: studentInfo.computer }
+        ],
+        true
+      );
     } else {
-      alert('Por favor, selecione um horário e um computador disponível.');
+      this.showInfoMessage('Atenção', 'Por favor, selecione um horário e um computador disponível.', false);
     }
   }
 
-  rejectRequest(): void {
-    if (this.selectedStudent) {
-      this.selectedStudent.status = 'rejected';
-      this.closeScheduleModal();
-      this.calculatePendingRequests();
+  rejectRequest(student?: Student): void {
+    const studentToReject = student || this.selectedStudent;
+    
+    if (studentToReject) {
+      // Mostrar modal de confirmação
+      this.showConfirmationModal(
+        '⚠️ Confirmar Rejeição',
+        `Tem certeza que deseja rejeitar a solicitação de reposição de ${studentToReject.name}?\n\nMatéria: ${studentToReject.subject}\nAulas para repor: ${studentToReject.classesToRecover}`,
+        'Sim, Rejeitar',
+        () => {
+          studentToReject.status = 'rejected';
+          this.closeScheduleModal();
+          this.calculatePendingRequests();
+          
+          // Mostrar modal de confirmação de rejeição
+          this.showSuccessMessage(
+            'Solicitação Rejeitada',
+            [
+              { label: 'Aluno', value: studentToReject.name },
+              { label: 'Matéria', value: studentToReject.subject },
+              { label: 'Aulas solicitadas', value: studentToReject.classesToRecover.toString() }
+            ],
+            false
+          );
+        }
+      );
     }
+  }
+
+  // Nova função para mostrar modal de confirmação
+  showConfirmationModal(title: string, message: string, confirmText: string, onConfirm: () => void): void {
+    this.confirmMessage = {
+      title,
+      message,
+      confirmText,
+      cancelText: 'Cancelar'
+    };
+    this.confirmAction = onConfirm;
+    this.showConfirmModal = true;
+  }
+
+  // Nova função para confirmar ação
+  confirmModalAction(): void {
+    if (this.confirmAction) {
+      this.confirmAction();
+    }
+    this.closeConfirmModal();
+  }
+
+  // Nova função para fechar modal de confirmação
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.confirmAction = null;
+    this.confirmMessage = {
+      title: '',
+      message: '',
+      confirmText: '',
+      cancelText: 'Cancelar'
+    };
+  }
+
+  // Nova função para mostrar mensagem de sucesso
+  showSuccessMessage(title: string, details: { label: string, value: string }[], isSuccess: boolean = true): void {
+    this.successMessage = { title, details, isSuccess };
+    this.showSuccessModal = true;
+  }
+
+  // Nova função para mostrar mensagem informativa
+  showInfoMessage(title: string, message: string, isSuccess: boolean = false): void {
+    this.successMessage = { 
+      title, 
+      details: [{ label: '', value: message }],
+      isSuccess
+    };
+    this.showSuccessModal = true;
+  }
+
+  // Nova função para fechar modal de sucesso
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+    this.successMessage = { title: '', details: [], isSuccess: true };
   }
 
   // Chat com professores

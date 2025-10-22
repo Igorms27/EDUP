@@ -88,6 +88,17 @@ export class StudentDashboard implements OnInit {
   recoveryReason = '';
   recoveryRequests: RecoveryRequest[] = [];
 
+  // Adicionar nova propriedade
+  showSubjectSelectionModal = false;
+  subjectsNeedingRecovery: Subject[] = [];
+
+  // Adicionar novas propriedades para o modal de sucesso
+  showSuccessModal = false;
+  successMessage = {
+    title: '',
+    details: [] as { label: string, value: string }[]
+  };
+
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
@@ -117,21 +128,30 @@ export class StudentDashboard implements OnInit {
     return 'failed';
   }
 
-  // Função para solicitar reposição de aulas
+  // Modificar a função requestClassRecovery
   requestClassRecovery(): void {
     const subjectsToRecover = this.subjects.filter(s => s.classesToRecover > 0);
     if (subjectsToRecover.length === 0) {
-      alert('Você não tem aulas para repor!');
+      // Substituir alert por modal
+      this.showInfoMessage('Nenhuma aula para repor', 'Você não tem aulas para repor no momento.');
       return;
     }
 
-    // Se há apenas uma matéria, abrir modal diretamente
-    if (subjectsToRecover.length === 1) {
-      this.openRecoveryModal(subjectsToRecover[0]);
-    } else {
-      // Se há múltiplas matérias, mostrar lista para escolher
-      this.showSubjectSelection(subjectsToRecover);
-    }
+    // Sempre mostrar o modal de seleção de matérias
+    this.subjectsNeedingRecovery = subjectsToRecover;
+    this.showSubjectSelectionModal = true;
+  }
+
+  // Nova função para selecionar matéria do card
+  selectSubjectForRecovery(subject: Subject): void {
+    this.showSubjectSelectionModal = false;
+    this.openRecoveryModal(subject);
+  }
+
+  // Nova função para fechar modal de seleção
+  closeSubjectSelectionModal(): void {
+    this.showSubjectSelectionModal = false;
+    this.subjectsNeedingRecovery = [];
   }
 
   openRecoveryModal(subject: Subject): void {
@@ -148,7 +168,7 @@ export class StudentDashboard implements OnInit {
 
   submitRecoveryRequest(): void {
     if (!this.selectedSubject || !this.recoveryReason.trim()) {
-      alert('Por favor, preencha o motivo da solicitação.');
+      this.showInfoMessage('Atenção', 'Por favor, preencha o motivo da solicitação.');
       return;
     }
 
@@ -170,8 +190,16 @@ export class StudentDashboard implements OnInit {
     // Simular envio para o coordenador
     this.sendRequestToCoordinator(request);
 
-    // Mostrar confirmação
-    alert(`Solicitação enviada com sucesso!\n\nMatéria: ${request.subject}\nAulas para repor: ${request.classesToRecover}\n\nO coordenador analisará sua solicitação e entrará em contato.`);
+    // Substituir alert por modal de sucesso bonito
+    this.showSuccessMessage(
+      'Solicitação enviada com sucesso!',
+      [
+        { label: 'Matéria', value: request.subject },
+        { label: 'Professor(a)', value: request.professor },
+        { label: 'Aulas para repor', value: request.classesToRecover.toString() },
+        { label: 'Data da solicitação', value: this.formatDate(request.requestDate) }
+      ]
+    );
 
     this.closeRecoveryModal();
   }
@@ -183,20 +211,8 @@ export class StudentDashboard implements OnInit {
      
   }
 
-  private showSubjectSelection(subjects: Subject[]): void {
-    const subjectList = subjects.map(s => 
-      `${s.name} - ${s.classesToRecover} aulas (${s.professor})`
-    ).join('\n');
-
-    const choice = prompt(
-      `Você tem aulas para repor em múltiplas matérias:\n\n${subjectList}\n\nDigite o número da matéria (1-${subjects.length}) ou 0 para cancelar:`
-    );
-
-    const index = parseInt(choice || '0') - 1;
-    if (index >= 0 && index < subjects.length) {
-      this.openRecoveryModal(subjects[index]);
-    }
-  }
+  // Remover a função showSubjectSelection (não é mais necessária)
+  // private showSubjectSelection(subjects: Subject[]): void { ... }
 
   private loadRecoveryRequests(): void {
     // Carregar solicitações existentes (simulado)
@@ -313,5 +329,34 @@ export class StudentDashboard implements OnInit {
 
   getProfessorBySubject(subjectName: string): Professor | null {
     return this.professors.find(p => p.subject === subjectName) || null;
+  }
+
+  // Nova função helper para abrir chat a partir da matéria
+  openChatForSubject(subjectName: string): void {
+    const professor = this.getProfessorBySubject(subjectName);
+    if (professor) {
+      this.openChat(professor);
+    }
+  }
+
+  // Nova função para mostrar mensagem de sucesso
+  showSuccessMessage(title: string, details: { label: string, value: string }[]): void {
+    this.successMessage = { title, details };
+    this.showSuccessModal = true;
+  }
+
+  // Nova função para mostrar mensagem informativa
+  showInfoMessage(title: string, message: string): void {
+    this.successMessage = { 
+      title, 
+      details: [{ label: '', value: message }] 
+    };
+    this.showSuccessModal = true;
+  }
+
+  // Nova função para fechar modal de sucesso
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+    this.successMessage = { title: '', details: [] };
   }
 }

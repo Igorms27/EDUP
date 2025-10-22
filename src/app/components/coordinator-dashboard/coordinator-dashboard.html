@@ -127,7 +127,7 @@
               <button 
                 class="action-btn reject-btn" 
                 *ngIf="student.status === 'pending'"
-                (click)="rejectRequest(); $event.stopPropagation()">
+                (click)="rejectRequest(student); $event.stopPropagation()">
                 ❌ Rejeitar
               </button>
             </td>
@@ -279,4 +279,69 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de Confirmação -->
+  <div class="modal-overlay confirm-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+    <div class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon">
+        <div class="warning-circle">
+          <span class="warning-symbol">⚠️</span>
+        </div>
+      </div>
+      
+      <div class="confirm-content">
+        <h3>{{ confirmMessage.title }}</h3>
+        <p class="confirm-message">{{ confirmMessage.message }}</p>
+      </div>
+      
+      <div class="confirm-footer">
+        <button class="btn-confirm-cancel" (click)="closeConfirmModal()">
+          {{ confirmMessage.cancelText }}
+        </button>
+        <button class="btn-confirm-action" (click)="confirmModalAction()">
+          {{ confirmMessage.confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Sucesso/Informação -->
+  <div class="modal-overlay success-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+    <div class="modal success-modal" (click)="$event.stopPropagation()">
+      <div class="success-icon" [class.rejected-icon]="!successMessage.isSuccess">
+        <div class="icon-circle">
+          <div class="checkmark" *ngIf="successMessage.isSuccess"></div>
+          <div class="x-mark" *ngIf="!successMessage.isSuccess">✕</div>
+        </div>
+      </div>
+      
+      <div class="success-content">
+        <h3>{{ successMessage.title }}</h3>
+        
+        <div class="success-details" *ngIf="successMessage.details.length > 0">
+          <div class="detail-row" *ngFor="let detail of successMessage.details">
+            <span class="detail-label" *ngIf="detail.label">{{ detail.label }}:</span>
+            <span class="detail-value">{{ detail.value }}</span>
+          </div>
+        </div>
+        
+        <p class="success-note" *ngIf="successMessage.isSuccess && successMessage.details.length > 1">
+          O aluno será notificado sobre a aprovação da reposição.
+        </p>
+        
+        <p class="reject-note" *ngIf="!successMessage.isSuccess && successMessage.details.length > 1">
+          O aluno será notificado sobre a rejeição da solicitação.
+        </p>
+      </div>
+      
+      <div class="success-footer">
+        <button class="btn-success-ok" 
+                [class.btn-reject-ok]="!successMessage.isSuccess"
+                (click)="closeSuccessModal()">
+          ✓ Entendi
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

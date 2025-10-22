@@ -873,3 +873,373 @@
     max-height: 90vh;
   }
 }
+
+/* Modal de Confirmação */
+.confirm-overlay {
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.confirm-modal {
+  max-width: 450px;
+  text-align: center;
+  padding: 0;
+  animation: confirmPopup 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes confirmPopup {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.confirm-icon {
+  padding: 40px 20px 20px;
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.warning-circle {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.warning-symbol {
+  font-size: 48px;
+}
+
+.confirm-content {
+  padding: 30px;
+}
+
+.confirm-content h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.confirm-message {
+  color: #555;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.confirm-footer {
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-confirm-cancel {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.btn-confirm-cancel:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.btn-confirm-action {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  flex: 1;
+}
+
+.btn-confirm-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Modal de Sucesso */
+.success-overlay {
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease;
+}
+
+.success-modal {
+  max-width: 450px;
+  text-align: center;
+  padding: 0;
+  animation: successPopup 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes successPopup {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.success-icon {
+  padding: 40px 20px 20px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.success-icon.rejected-icon {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s forwards;
+  transform: scale(0);
+}
+
+@keyframes scaleIn {
+  to { transform: scale(1); }
+}
+
+.checkmark {
+  width: 30px;
+  height: 50px;
+  border: solid #28a745;
+  border-width: 0 5px 5px 0;
+  transform: rotate(45deg);
+  animation: checkmark 0.5s ease 0.4s forwards;
+  opacity: 0;
+}
+
+@keyframes checkmark {
+  to { opacity: 1; }
+}
+
+.x-mark {
+  font-size: 48px;
+  color: #dc3545;
+  font-weight: bold;
+  animation: xmark 0.5s ease 0.4s forwards;
+  opacity: 0;
+}
+
+@keyframes xmark {
+  to { opacity: 1; }
+}
+
+.success-content {
+  padding: 30px;
+}
+
+.success-content h3 {
+  margin: 0 0 20px 0;
+  color: #28a745;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.success-modal .success-icon.rejected-icon + .success-content h3 {
+  color: #dc3545;
+}
+
+.success-details {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.detail-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-row:first-child {
+  padding-top: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.detail-value {
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  flex: 1;
+}
+
+.success-note,
+.reject-note {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 15px;
+  border-radius: 6px;
+}
+
+.success-note {
+  background: #e3f2fd;
+  border-left: 3px solid #2196f3;
+}
+
+.reject-note {
+  background: #fff3cd;
+  border-left: 3px solid #ffc107;
+}
+
+.success-footer {
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.btn-success-ok {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  width: 100%;
+}
+
+.btn-success-ok:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-reject-ok {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.btn-reject-ok:hover {
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+/* Responsivo para modais */
+@media (max-width: 600px) {
+  .confirm-modal,
+  .success-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .confirm-icon,
+  .success-icon {
+    padding: 30px 20px 15px;
+  }
+
+  .warning-circle,
+  .icon-circle {
+    width: 70px;
+    height: 70px;
+  }
+
+  .warning-symbol {
+    font-size: 40px;
+  }
+
+  .checkmark {
+    width: 25px;
+    height: 45px;
+    border-width: 0 4px 4px 0;
+  }
+
+  .x-mark {
+    font-size: 40px;
+  }
+
+  .confirm-content,
+  .success-content {
+    padding: 20px;
+  }
+
+  .confirm-content h3,
+  .success-content h3 {
+    font-size: 20px;
+  }
+
+  .confirm-footer {
+    flex-direction: column;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .detail-label {
+    min-width: auto;
+  }
+
+  .detail-value {
+    text-align: left;
+  }
+}

@@ -33,14 +33,14 @@
     <div class="requests-list">
       <div class="request-card" 
            *ngFor="let request of recoveryRequests"
-           [class]="getRequestStatusClass(request.status)">
+           [ngClass]="getRequestStatusClass(request.status)">
         <div class="request-header">
           <div class="request-info">
             <h4>{{ request.subject }}</h4>
             <p>{{ request.professor }}</p>
           </div>
           <div class="request-status">
-            <span class="status-badge" [class]="getRequestStatusClass(request.status)">
+            <span class="status-badge" [ngClass]="getRequestStatusClass(request.status)">
               {{ getRequestStatusText(request.status) }}
             </span>
           </div>
@@ -70,7 +70,7 @@
           <div class="subject-name">{{ subject.name }}</div>
           <div class="professor-info">
             <span class="professor-name">{{ subject.professor }}</span>
-            <button class="chat-btn" (click)="getProfessorBySubject(subject.name) && openChat(getProfessorBySubject(subject.name)!)">
+            <button class="chat-btn" (click)="openChatForSubject(subject.name)">
               💬 Chat
             </button>
           </div>
@@ -78,7 +78,7 @@
         <div class="subject-details">
           <div class="grade">
             <span class="number">{{ subject.grade }}</span>
-            <span class="status" [class]="getStatusClass(subject.grade)">
+            <span class="status" [ngClass]="getStatusClass(subject.grade)">
               {{ getStatus(subject.grade) }}
             </span>
           </div>
@@ -129,6 +129,46 @@
     </div>
   </div>
 
+  <!-- Modal de Seleção de Matérias -->
+  <div class="modal-overlay" *ngIf="showSubjectSelectionModal" (click)="closeSubjectSelectionModal()">
+    <div class="modal selection-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📚 Escolha a Matéria para Reposição</h3>
+        <button class="close-btn" (click)="closeSubjectSelectionModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="selection-instruction">
+          Você possui aulas para repor em {{ subjectsNeedingRecovery.length }} 
+          {{ subjectsNeedingRecovery.length === 1 ? 'matéria' : 'matérias' }}. 
+          Clique na matéria que deseja solicitar a reposição:
+        </p>
+        
+        <div class="subject-selection-list">
+          <div class="subject-selection-card" 
+               *ngFor="let subject of subjectsNeedingRecovery"
+               (click)="selectSubjectForRecovery(subject)">
+            <div class="subject-card-header">
+              <h4>{{ subject.name }}</h4>
+              <span class="classes-badge">{{ subject.classesToRecover }} {{ subject.classesToRecover === 1 ? 'aula' : 'aulas' }}</span>
+            </div>
+            <div class="subject-card-body">
+              <p class="professor-label">
+                <strong>Professor(a):</strong> {{ subject.professor }}
+              </p>
+              <p class="absences-label">
+                <strong>Faltas:</strong> {{ subject.absences }}/{{ subject.maxAbsences }}
+              </p>
+            </div>
+            <div class="subject-card-footer">
+              <span class="select-arrow">Clique para selecionar →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Chat Modal -->
   <div class="chat-overlay" *ngIf="showChat" (click)="closeChat()">
     <div class="chat-modal" (click)="$event.stopPropagation()">
@@ -138,7 +178,7 @@
           <div class="professor-details">
             <h3>{{ selectedProfessor?.name }}</h3>
             <p>{{ selectedProfessor?.subject }}</p>
-            <span class="online-status" [class]="selectedProfessor?.online ? 'online' : 'offline'">
+            <span class="online-status" [ngClass]="selectedProfessor?.online ? 'online' : 'offline'">
               {{ selectedProfessor?.online ? '🟢 Online' : '🔴 Offline' }}
             </span>
           </div>
@@ -149,7 +189,7 @@
       <div class="chat-messages">
         <div class="message" 
              *ngFor="let message of getMessagesForProfessor(selectedProfessor?.id || 0)"
-             [class]="message.sender">
+             [ngClass]="message.sender">
           <div class="message-content">
             <p>{{ message.message }}</p>
             <span class="message-time">{{ formatTime(message.timestamp) }}</span>
@@ -170,4 +210,37 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de Sucesso -->
+  <div class="modal-overlay success-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+    <div class="modal success-modal" (click)="$event.stopPropagation()">
+      <div class="success-icon">
+        <div class="checkmark-circle">
+          <div class="checkmark"></div>
+        </div>
+      </div>
+      
+      <div class="success-content">
+        <h3>{{ successMessage.title }}</h3>
+        
+        <div class="success-details" *ngIf="successMessage.details.length > 0">
+          <div class="detail-row" *ngFor="let detail of successMessage.details">
+            <span class="detail-label" *ngIf="detail.label">{{ detail.label }}:</span>
+            <span class="detail-value">{{ detail.value }}</span>
+          </div>
+        </div>
+        
+        <p class="success-note" *ngIf="successMessage.details.length > 1">
+          O coordenador analisará sua solicitação e entrará em contato em breve.
+        </p>
+      </div>
+      
+      <div class="success-footer">
+        <button class="btn-success-ok" (click)="closeSuccessModal()">
+          ✓ Entendi
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>
