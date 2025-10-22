@@ -79,6 +79,8 @@
   font-size: 1rem;
   transition: all 0.2s ease;
   background: white;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .form-input:focus {
@@ -93,6 +95,63 @@
 
 .form-input::placeholder {
   color: #9ca3af;
+}
+
+/* Wrapper do campo de senha */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .form-input {
+  padding-right: 3rem;
+}
+
+/* Botão de toggle de senha */
+.toggle-password-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  color: #6b7280;
+}
+
+.toggle-password-btn svg {
+  transition: all 0.2s ease;
+}
+
+.toggle-password-btn:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: #3b82f6;
+}
+
+.toggle-password-btn:hover svg {
+  transform: scale(1.05);
+}
+
+.toggle-password-btn:focus {
+  outline: none;
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.toggle-password-btn:active {
+  transform: scale(0.95);
+}
+
+.toggle-password-btn:active svg {
+  transform: scale(1);
 }
 
 /* Mensagens de erro */

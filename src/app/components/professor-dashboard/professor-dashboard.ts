@@ -1,7 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth';
+import { AuthService, User } from '../../services/auth';
+
+
 
 interface Student {
   id: number;
@@ -39,8 +41,10 @@ interface ChatMessage {
   templateUrl: './professor-dashboard.html',
   styleUrl: './professor-dashboard.css'
 })
-export class ProfessorDashboard implements OnInit {
-  currentUser: any = null;
+export class ProfessorDashboardComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+
+  currentUser: User | null = null;
   
   professorName = 'Prof. Maria Oliveira';
   professorSubject = 'Programação Web';
@@ -91,8 +95,6 @@ export class ProfessorDashboard implements OnInit {
   chatMessages: ChatMessage[] = [];
   filteredChatMessages: ChatMessage[] = [];
   unreadMessages = signal(0);
-
-  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser()();

@@ -269,34 +269,52 @@
 
 .actions-cell {
   text-align: center;
+  white-space: nowrap;
+  padding: 12px 8px !important;
+}
+
+.actions-cell > * {
+  vertical-align: middle;
 }
 
 .action-btn {
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  margin: 0 2px;
-  transition: background 0.3s ease;
+  margin: 0 4px;
+  transition: all 0.3s ease;
+  min-width: 85px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .schedule-btn {
   background: #28a745;
   color: white;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
 }
 
 .schedule-btn:hover {
   background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
 }
 
 .reject-btn {
   background: #dc3545;
   color: white;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
 }
 
 .reject-btn:hover {
   background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
 /* Modal */

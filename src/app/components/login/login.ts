@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
@@ -9,15 +9,14 @@ import { AuthService } from '../../services/auth';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login implements OnInit {
+export class LoginComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+
   loginForm!: FormGroup;
   isSubmitted = false;
   loginError = false;
-
-  constructor(
-    private formBuilder: FormBuilder,
-    private authService: AuthService
-  ) {}
+  showPassword = false;
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
@@ -37,8 +36,6 @@ export class Login implements OnInit {
       if (!success) {
         this.loginError = true;
       }
-    } else {
-      console.log('Formulário inválido:', this.loginForm.errors);
     }
   }
 
@@ -48,5 +45,9 @@ export class Login implements OnInit {
 
   get password() {
     return this.loginForm.get('password');
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 }

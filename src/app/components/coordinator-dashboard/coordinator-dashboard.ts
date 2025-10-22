@@ -1,7 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth';
+import { AuthService, User } from '../../services/auth';
 
 interface Student {
   id: number;
@@ -63,8 +63,10 @@ interface Computer {
   templateUrl: './coordinator-dashboard.html',
   styleUrl: './coordinator-dashboard.css'
 })
-export class CoordinatorDashboard implements OnInit {
-  currentUser: any = null;
+export class CoordinatorDashboardComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+
+  currentUser: User | null = null;
   
   coordinatorName = 'Carlos Coordenador';
   
@@ -108,8 +110,6 @@ export class CoordinatorDashboard implements OnInit {
     details: [] as { label: string, value: string }[],
     isSuccess: true
   };
-
-  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser()();
