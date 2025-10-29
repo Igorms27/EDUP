@@ -211,8 +211,6 @@ export class StudentDashboardComponent implements OnInit {
      
   }
 
-  // Remover a função showSubjectSelection (não é mais necessária)
-  // private showSubjectSelection(subjects: Subject[]): void { ... }
 
   private loadRecoveryRequests(): void {
     // Carregar solicitações existentes (simulado)
