@@ -31,11 +31,11 @@ export class LoginComponent implements OnInit {
     
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      const success = this.authService.login(email, password);
-      
-      if (!success) {
-        this.loginError = true;
-      }
+      this.authService.login(email, password).subscribe((success) => {
+        if (!success) {
+          this.loginError = true;
+        }
+      });
     }
   }
 

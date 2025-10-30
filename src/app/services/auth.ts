@@ -1,5 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, catchError, of } from 'rxjs';
 
 export interface User {
   id: string;
@@ -9,44 +11,26 @@ export interface User {
   type: 'student' | 'teacher' | 'coordinator';
 }
 
+interface BackendLoginResponse {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  type?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   private readonly STORAGE_KEY = 'edumanage_user';
+  private readonly API_BASE = 'http://localhost:8080/api';
 
   private currentUser = signal<User | null>(this.loadUserFromStorage());
   private isAuthenticated = signal<boolean>(this.loadUserFromStorage() !== null);
 
-  // Usuários simulados
-  private readonly users: User[] = [
-    {
-      id: '1',
-      email: 'aluno@teste.com',
-      password: '123456',
-      name: 'João Silva',
-      type: 'student'
-    },
-    {
-      id: '2',
-      email: 'professor@teste.com',
-      password: '123456',
-      name: 'Maria Santos',
-      type: 'teacher'
-    },
-    {
-      id: '3',
-      email: 'coordenador@teste.com',
-      password: '123456',
-      name: 'Carlos Coordenador',
-      type: 'coordinator'
-    }
-  ];
-
-  /**
-   * Carrega usuário do localStorage ao inicializar o serviço
-   */
   private loadUserFromStorage(): User | null {
     try {
       const storedUser = localStorage.getItem(this.STORAGE_KEY);
@@ -60,12 +44,8 @@ export class AuthService {
     return null;
   }
 
-  /**
-   * Salva usuário no localStorage
-   */
   private saveUserToStorage(user: User): void {
     try {
-      // Remove a senha antes de salvar
       const { password, ...userWithoutPassword } = user;
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(userWithoutPassword));
     } catch (error) {
@@ -73,33 +53,36 @@ export class AuthService {
     }
   }
 
-  /**
-   * Remove usuário do localStorage
-   */
   private removeUserFromStorage(): void {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
-  /**
-   * Realiza login do usuário
-   */
-  login(email: string, password: string): boolean {
-    const user = this.users.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-      this.currentUser.set(user);
-      this.isAuthenticated.set(true);
-      this.saveUserToStorage(user);
-      this.navigateByUserType(user.type);
-      return true;
-    }
-    
-    return false;
+  login(email: string, password: string): Observable<boolean> {
+    return this.http.post<BackendLoginResponse>(`${this.API_BASE}/auth/login`, { email, password }).pipe(
+      map((res) => {
+        let userType: 'coordinator' | 'teacher' | 'student' = 'coordinator';
+        if (res.type?.toLowerCase() === 'teacher') userType = 'teacher';
+        if (res.type?.toLowerCase() === 'coordinator') userType = 'coordinator';
+        if (res.type?.toLowerCase() === 'student') userType = 'student';
+        const user: User = {
+          id: String(res.id),
+          email: res.email,
+          name: res.name,
+          type: userType
+        };
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
+        this.saveUserToStorage(user);
+        this.navigateByUserType(user.type);
+        return true;
+      }),
+      catchError((err) => {
+        console.error('Falha no login', err);
+        return of(false);
+      })
+    );
   }
 
-  /**
-   * Realiza logout do usuário
-   */
   logout(): void {
     this.currentUser.set(null);
     this.isAuthenticated.set(false);
@@ -107,16 +90,12 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Navega para a dashboard correta baseado no tipo de usuário
-   */
   private navigateByUserType(userType: User['type']): void {
     const dashboardMap: Record<User['type'], string> = {
       student: '/student-dashboard',
       teacher: '/professor-dashboard',
       coordinator: '/coordinator-dashboard'
     };
-
     this.router.navigate([dashboardMap[userType]]);
   }
 

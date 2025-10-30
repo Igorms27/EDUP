@@ -5,9 +5,8 @@
 /tmp
 /out-tsc
 /bazel-out
-/.cursor/rules
 /.vscode
-
+/.cursor
 # Node
 /node_modules
 npm-debug.log
