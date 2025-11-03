@@ -2,6 +2,8 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../services/auth';
+import { MakeupService, MakeupRequest } from '../../services/makeup';
+import { forkJoin } from 'rxjs';
 
 interface Student {
   id: number;
@@ -65,6 +67,7 @@ interface Computer {
 })
 export class CoordinatorDashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly makeupService = inject(MakeupService);
 
   currentUser: User | null = null;
   
@@ -124,45 +127,7 @@ export class CoordinatorDashboardComponent implements OnInit {
 
   // Inicialização de dados
   private initializeData(): void {
-    // Estudantes solicitando reposição
-    this.students = [
-      {
-        id: 1,
-        name: 'João Silva Santos',
-        enrollment: 'ADS2024001',
-        email: 'joao.silva@email.com',
-        subject: 'Programação Web',
-        professor: 'Prof. Maria Oliveira',
-        classesToRecover: 3,
-        reason: 'Problemas de saúde',
-        requestDate: new Date(Date.now() - 86400000),
-        status: 'pending'
-      },
-      {
-        id: 2,
-        name: 'Ana Costa Lima',
-        enrollment: 'ADS2024002',
-        email: 'ana.costa@email.com',
-        subject: 'Banco de Dados',
-        professor: 'Prof. Pedro Santos',
-        classesToRecover: 2,
-        reason: 'Emergência familiar',
-        requestDate: new Date(Date.now() - 172800000),
-        status: 'pending'
-      },
-      {
-        id: 3,
-        name: 'Carlos Mendes',
-        enrollment: 'ADS2024003',
-        email: 'carlos.mendes@email.com',
-        subject: 'Programação Web',
-        professor: 'Prof. Maria Oliveira',
-        classesToRecover: 4,
-        reason: 'Viagem de trabalho',
-        requestDate: new Date(Date.now() - 259200000),
-        status: 'pending'
-      }
-    ];
+    this.reloadAllStatuses();
 
     // Professores
     this.professors = [
@@ -275,6 +240,38 @@ export class CoordinatorDashboardComponent implements OnInit {
       }
     ];
   }
+  private reloadAllStatuses(): void {
+    forkJoin({
+      pending: this.makeupService.listByStatus('PENDING'),
+      approved: this.makeupService.listByStatus('APPROVED'),
+      rejected: this.makeupService.listByStatus('REJECTED')
+    }).subscribe({
+      next: ({ pending, approved, rejected }) => {
+        const mapToStudent = (r: MakeupRequest, status: 'pending'|'approved'|'rejected'): Student => ({
+          id: r.id,
+          name: `Aluno ID ${r.studentId}`,
+          enrollment: `#${r.studentId}`,
+          email: '',
+          subject: r.subject,
+          professor: '',
+          classesToRecover: 1,
+          reason: r.reason,
+          requestDate: new Date(r.createdAt),
+          status
+        });
+        this.students = [
+          ...pending.map(r => mapToStudent(r, 'pending')),
+          ...approved.map(r => mapToStudent(r, 'approved')),
+          ...rejected.map(r => mapToStudent(r, 'rejected')),
+        ];
+        this.calculatePendingRequests();
+      },
+      error: () => {
+        this.students = [];
+        this.calculatePendingRequests();
+      }
+    });
+  }
 
   // Gerenciamento de solicitações
   openScheduleModal(student: Student): void {
@@ -292,44 +289,35 @@ export class CoordinatorDashboardComponent implements OnInit {
   }
 
   approveRequest(): void {
-    if (this.selectedStudent && this.selectedSchedule && this.selectedComputer) {
-      this.selectedStudent.status = 'approved';
-      this.selectedSchedule.available = false;
-      this.selectedComputer.available = false;
-      
-      this.selectedStudent.scheduledDate = this.selectedSchedule.day;
-      this.selectedStudent.scheduledTime = this.selectedSchedule.time;
-      this.selectedStudent.assignedComputer = this.selectedComputer.number;
-      this.selectedStudent.assignedRoom = this.selectedSchedule.room;
-      
-      const studentInfo = {
-        name: this.selectedStudent.name,
-        subject: this.selectedStudent.subject,
-        day: this.selectedSchedule.day,
-        time: this.selectedSchedule.time,
-        room: this.selectedSchedule.room,
-        computer: this.selectedComputer.number
-      };
-      
-      this.closeScheduleModal();
-      this.calculatePendingRequests();
-      
-      // Mostrar modal de sucesso
-      this.showSuccessMessage(
-        'Solicitação Aprovada!',
-        [
-          { label: 'Aluno', value: studentInfo.name },
-          { label: 'Matéria', value: studentInfo.subject },
-          { label: 'Data', value: studentInfo.day },
-          { label: 'Horário', value: studentInfo.time },
-          { label: 'Sala', value: studentInfo.room },
-          { label: 'Computador', value: studentInfo.computer }
-        ],
-        true
-      );
-    } else {
-      this.showInfoMessage('Atenção', 'Por favor, selecione um horário e um computador disponível.', false);
-    }
+    if (!this.selectedStudent) return;
+
+    // Aprovar; seleção de horário/máquina é ilustrativa e opcional
+    this.makeupService.approve(this.selectedStudent.id).subscribe({
+      next: () => {
+        this.selectedStudent!.status = 'approved';
+        this.closeScheduleModal();
+        this.reloadAllStatuses();
+        this.showSuccessMessage(
+          'Solicitação Aprovada!',
+          [
+            { label: 'Aluno', value: this.selectedStudent!.name },
+            { label: 'Matéria', value: this.selectedStudent!.subject },
+            ...(this.selectedSchedule ? [
+              { label: 'Data', value: this.selectedSchedule.day },
+              { label: 'Horário', value: this.selectedSchedule.time },
+              { label: 'Sala', value: this.selectedSchedule.room }
+            ] : []),
+            ...(this.selectedComputer ? [
+              { label: 'Computador', value: this.selectedComputer.number }
+            ] : [])
+          ],
+          true
+        );
+      },
+      error: () => {
+        this.showInfoMessage('Erro', 'Falha ao aprovar no servidor. Tente novamente.', false);
+      }
+    });
   }
 
   rejectRequest(student?: Student): void {
@@ -342,20 +330,26 @@ export class CoordinatorDashboardComponent implements OnInit {
         `Tem certeza que deseja rejeitar a solicitação de reposição de ${studentToReject.name}?\n\nMatéria: ${studentToReject.subject}\nAulas para repor: ${studentToReject.classesToRecover}`,
         'Sim, Rejeitar',
         () => {
-          studentToReject.status = 'rejected';
-          this.closeScheduleModal();
-          this.calculatePendingRequests();
-          
-          // Mostrar modal de confirmação de rejeição
-          this.showSuccessMessage(
-            'Solicitação Rejeitada',
-            [
-              { label: 'Aluno', value: studentToReject.name },
-              { label: 'Matéria', value: studentToReject.subject },
-              { label: 'Aulas solicitadas', value: studentToReject.classesToRecover.toString() }
-            ],
-            false
-          );
+          // Chamar backend para rejeitar
+          this.makeupService.reject(studentToReject.id).subscribe({
+            next: () => {
+              studentToReject.status = 'rejected';
+              this.closeScheduleModal();
+              this.calculatePendingRequests();
+              this.showSuccessMessage(
+                'Solicitação Rejeitada',
+                [
+                  { label: 'Aluno', value: studentToReject.name },
+                  { label: 'Matéria', value: studentToReject.subject },
+                  { label: 'Aulas solicitadas', value: studentToReject.classesToRecover.toString() }
+                ],
+                false
+              );
+            },
+            error: () => {
+              this.showInfoMessage('Erro', 'Falha ao rejeitar no servidor. Tente novamente.', false);
+            }
+          });
         }
       );
     }
@@ -457,9 +451,15 @@ export class CoordinatorDashboardComponent implements OnInit {
   }
 
   getAvailableSchedulesForSubject(subject: string): ClassSchedule[] {
-    return this.availableSchedules.filter(schedule => 
-      schedule.subject === subject && schedule.available
+    const normalized = subject.toLowerCase();
+    const matches = this.availableSchedules.filter(schedule =>
+      schedule.available && (
+        schedule.subject.toLowerCase() === normalized ||
+        schedule.subject.toLowerCase().includes(normalized) ||
+        normalized.includes(schedule.subject.toLowerCase())
+      )
     );
+    return matches.length > 0 ? matches : this.availableSchedules.filter(s => s.available);
   }
 
   getAvailableComputersForRoom(room: string): Computer[] {
@@ -517,6 +517,22 @@ export class CoordinatorDashboardComponent implements OnInit {
       case 'rejected': return 'Rejeitado';
       default: return '';
     }
+  }
+
+  clearByStatus(status: 'pending' | 'approved' | 'rejected'): void {
+    const map: Record<'pending'|'approved'|'rejected', 'PENDING'|'APPROVED'|'REJECTED'> = {
+      pending: 'PENDING',
+      approved: 'APPROVED',
+      rejected: 'REJECTED'
+    };
+    this.makeupService.deleteByStatus(map[status]).subscribe({
+      next: () => {
+        this.reloadAllStatuses();
+      },
+      error: () => {
+        this.showInfoMessage('Erro', 'Falha ao limpar solicitações. Tente novamente.', false);
+      }
+    });
   }
 
   // Adicionar este método para filtrar estudantes

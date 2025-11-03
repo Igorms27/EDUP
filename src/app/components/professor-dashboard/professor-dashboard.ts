@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../services/auth';
+import { MatriculaService } from '../../services/matricula';
 
 
 
@@ -15,6 +16,8 @@ interface Student {
   maxAbsences: number;
   classesToRecover: number;
   status: 'approved' | 'recovery' | 'failed';
+  // Se definido, representa o aluno REAL no backend
+  realAlunoId?: number;
 }
 
 interface Class {
@@ -23,6 +26,8 @@ interface Class {
   students: Student[];
   schedule: string;
   room: string;
+  // Identificador usado no backend para a turma mockada
+  turmaKey: string;
 }
 
 interface ChatMessage {
@@ -43,6 +48,7 @@ interface ChatMessage {
 })
 export class ProfessorDashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly matriculaService = inject(MatriculaService);
 
   currentUser: User | null = null;
   
@@ -54,10 +60,12 @@ export class ProfessorDashboardComponent implements OnInit {
     {
       id: 1,
       name: 'ADS 4A - Manhã',
+      turmaKey: 'ADS4A-MANHA',
       schedule: 'Segunda e Quarta - 08:00 às 10:00',
       room: 'Lab 101',
       students: [
-        { id: 1, name: 'João Silva Santos', enrollment: 'ADS2024001', email: 'joao.silva@email.com', grade: 8.5, absences: 3, maxAbsences: 20, classesToRecover: 0, status: 'approved' },
+        // Vincule um aluno real do backend aqui (ajuste o ID conforme existir no BD)
+        { id: 1, realAlunoId: 1, name: 'João Silva Santos', enrollment: 'ADS2024001', email: 'joao.silva@email.com', grade: 8.5, absences: 3, maxAbsences: 20, classesToRecover: 0, status: 'approved' },
         { id: 2, name: 'Ana Costa Lima', enrollment: 'ADS2024002', email: 'ana.costa@email.com', grade: 7.2, absences: 5, maxAbsences: 20, classesToRecover: 0, status: 'approved' },
         { id: 3, name: 'Carlos Mendes', enrollment: 'ADS2024003', email: 'carlos.mendes@email.com', grade: 6.8, absences: 8, maxAbsences: 20, classesToRecover: 2, status: 'recovery' },
         { id: 4, name: 'Fernanda Alves', enrollment: 'ADS2024004', email: 'fernanda.alves@email.com', grade: 5.5, absences: 12, maxAbsences: 20, classesToRecover: 4, status: 'recovery' },
@@ -67,6 +75,7 @@ export class ProfessorDashboardComponent implements OnInit {
     {
       id: 2,
       name: 'ADS 4B - Noite',
+      turmaKey: 'ADS4B-NOITE',
       schedule: 'Terça e Quinta - 19:00 às 21:00',
       room: 'Lab 102',
       students: [
@@ -100,6 +109,10 @@ export class ProfessorDashboardComponent implements OnInit {
     this.currentUser = this.authService.getCurrentUser()();
     this.initializeChatMessages();
     this.calculateUnreadMessages();
+    // Seleciona a primeira turma por padrão e sincroniza com backend
+    if (this.classes.length > 0) {
+      this.selectClass(this.classes[0]);
+    }
   }
 
   logout(): void {
@@ -110,6 +123,23 @@ export class ProfessorDashboardComponent implements OnInit {
   selectClass(selectedClass: Class): void {
     this.selectedClass = selectedClass;
     this.selectedStudent = null;
+    // Sincroniza notas/faltas persistidas no backend para esta turma mock
+    const turmaKey = selectedClass.turmaKey;
+    this.matriculaService.listByTurma(turmaKey).subscribe({
+      next: (items) => {
+        // Atualiza os alunos que têm vínculo real (realAlunoId)
+        items.forEach((m) => {
+          const s = selectedClass.students.find(st => st.realAlunoId === m.alunoId);
+          if (s) {
+            if (typeof m.notaFinal === 'number') s.grade = m.notaFinal;
+            if (typeof m.faltas === 'number') s.absences = m.faltas;
+            s.status = this.calculateStatus(s.grade);
+            s.classesToRecover = this.calculateClassesToRecover(s.absences);
+          }
+        });
+      },
+      error: () => {}
+    });
   }
 
   // Seleção de aluno
@@ -134,6 +164,14 @@ export class ProfessorDashboardComponent implements OnInit {
     if (this.selectedStudent && this.selectedClass) {
       this.selectedStudent.grade = this.newGrade;
       this.selectedStudent.status = this.calculateStatus(this.newGrade);
+      // Se for aluno real, persiste no backend nesta turma mock
+      if (this.selectedStudent.realAlunoId) {
+        const turmaKey = this.selectedClass.turmaKey;
+        this.matriculaService.upsert(turmaKey, this.selectedStudent.realAlunoId, {
+          notaFinal: this.newGrade,
+          faltas: this.selectedStudent.absences
+        }).subscribe({ next: () => {}, error: () => {} });
+      }
       this.closeGradeModal();
     }
   }
@@ -155,6 +193,14 @@ export class ProfessorDashboardComponent implements OnInit {
     if (this.selectedStudent && this.selectedClass) {
       this.selectedStudent.absences = this.newAbsences;
       this.selectedStudent.classesToRecover = this.calculateClassesToRecover(this.newAbsences);
+      // Se for aluno real, persiste no backend nesta turma mock
+      if (this.selectedStudent.realAlunoId) {
+        const turmaKey = this.selectedClass.turmaKey;
+        this.matriculaService.upsert(turmaKey, this.selectedStudent.realAlunoId, {
+          notaFinal: this.selectedStudent.grade,
+          faltas: this.newAbsences
+        }).subscribe({ next: () => {}, error: () => {} });
+      }
       this.closeAbsenceModal();
     }
   }

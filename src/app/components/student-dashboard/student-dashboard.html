@@ -29,7 +29,10 @@
 
   <!-- Solicitações de Reposição -->
   <div class="requests-section" *ngIf="recoveryRequests.length > 0">
-    <h2>📋 Minhas Solicitações de Reposição</h2>
+    <h2>
+      📋 Minhas Solicitações de Reposição
+      <button class="recovery-btn" style="margin-left: 12px;" (click)="clearAllMine()">Limpar Todas</button>
+    </h2>
     <div class="requests-list">
       <div class="request-card" 
            *ngFor="let request of recoveryRequests"
@@ -107,6 +110,8 @@
           <p><strong>Professor:</strong> {{ selectedSubject.professor }}</p>
           <p><strong>Aulas para repor:</strong> {{ selectedSubject.classesToRecover }}</p>
         </div>
+
+        <!-- Data e horário serão definidos pelo coordenador -->
 
         <div class="form-group">
           <label for="recoveryReason">Motivo da solicitação:</label>

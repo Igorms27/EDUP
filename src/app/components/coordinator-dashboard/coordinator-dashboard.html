@@ -80,6 +80,11 @@
         Rejeitadas
       </button>
     </div>
+    <div class="filters" style="margin-top: 8px;">
+      <button class="filter-btn" (click)="clearByStatus('pending')">Limpar Pendentes</button>
+      <button class="filter-btn" (click)="clearByStatus('approved')">Limpar Aprovadas</button>
+      <button class="filter-btn" (click)="clearByStatus('rejected')">Limpar Rejeitadas</button>
+    </div>
   </section>
 
   <!-- Lista de Solicitações -->
@@ -153,9 +158,9 @@
           <p><strong>Aulas para repor:</strong> {{ selectedStudent.classesToRecover }}</p>
         </div>
 
-        <!-- Seleção de Horário -->
+        <!-- Seleção de Horário (ilustrativa/opcional) -->
         <div class="schedule-selection">
-          <h4>Horários Disponíveis:</h4>
+          <h4>Horários Disponíveis (opcional):</h4>
           <div class="schedules-grid">
             <div class="schedule-card" 
                  *ngFor="let schedule of getAvailableSchedulesForSubject(selectedStudent.subject)"
@@ -212,10 +217,8 @@
 
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeScheduleModal()">Cancelar</button>
-        <button class="btn-save" 
-                (click)="approveRequest()" 
-                [disabled]="!selectedSchedule || !selectedComputer">
-          ✅ Aprovar e Agendar
+        <button class="btn-save" (click)="approveRequest()">
+          ✅ Aprovar
         </button>
       </div>
     </div>

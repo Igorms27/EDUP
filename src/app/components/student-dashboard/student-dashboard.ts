@@ -2,6 +2,9 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../services/auth';
+import { forkJoin } from 'rxjs';
+import { MakeupService } from '../../services/makeup';
+import { MatriculaService, MatriculaItem } from '../../services/matricula';
 
 interface Subject {
   name: string;
@@ -50,6 +53,8 @@ interface RecoveryRequest {
 })
 export class StudentDashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly makeupService = inject(MakeupService);
+  private readonly matriculaService = inject(MatriculaService);
 
   currentUser: User | null = null;
   
@@ -104,7 +109,8 @@ export class StudentDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser()();
     this.initializeChatMessages();
-    this.loadRecoveryRequests();
+    this.fetchMyRequests();
+    this.fetchMyGradesFromBackend();
   }
 
   logout(): void {
@@ -172,36 +178,38 @@ export class StudentDashboardComponent implements OnInit {
       return;
     }
 
-    const request: RecoveryRequest = {
-      id: Date.now(),
-      studentName: this.studentName,
-      studentEnrollment: this.studentEnrollment,
+    this.makeupService.createMakeup({
       subject: this.selectedSubject.name,
-      professor: this.selectedSubject.professor,
-      classesToRecover: this.selectedSubject.classesToRecover,
-      reason: this.recoveryReason,
-      requestDate: new Date(),
-      status: 'pending'
-    };
-
-    // Adicionar à lista local
-    this.recoveryRequests.push(request);
-
-    // Simular envio para o coordenador
-    this.sendRequestToCoordinator(request);
-
-    // Substituir alert por modal de sucesso bonito
-    this.showSuccessMessage(
-      'Solicitação enviada com sucesso!',
-      [
-        { label: 'Matéria', value: request.subject },
-        { label: 'Professor(a)', value: request.professor },
-        { label: 'Aulas para repor', value: request.classesToRecover.toString() },
-        { label: 'Data da solicitação', value: this.formatDate(request.requestDate) }
-      ]
-    );
-
-    this.closeRecoveryModal();
+      reason: this.recoveryReason
+    }).subscribe({
+      next: (resp) => {
+        const request: RecoveryRequest = {
+          id: resp.id,
+          studentName: this.studentName,
+          studentEnrollment: this.studentEnrollment,
+          subject: resp.subject,
+          professor: this.selectedSubject!.professor,
+          classesToRecover: this.selectedSubject!.classesToRecover,
+          reason: resp.reason,
+          requestDate: new Date(resp.createdAt),
+          status: 'pending'
+        };
+        this.fetchMyRequests();
+        this.showSuccessMessage(
+          'Solicitação enviada com sucesso!',
+          [
+            { label: 'Matéria', value: request.subject },
+            { label: 'Professor(a)', value: request.professor },
+            { label: 'Aulas para repor', value: request.classesToRecover.toString() },
+            { label: 'Data da solicitação', value: this.formatDate(request.requestDate) }
+          ]
+        );
+        this.closeRecoveryModal();
+      },
+      error: () => {
+        this.showInfoMessage('Erro', 'Não foi possível enviar sua solicitação. Tente novamente.');
+      }
+    });
   }
 
   private sendRequestToCoordinator(request: RecoveryRequest): void {
@@ -211,22 +219,71 @@ export class StudentDashboardComponent implements OnInit {
      
   }
 
-
-  private loadRecoveryRequests(): void {
-    // Carregar solicitações existentes (simulado)
-    this.recoveryRequests = [
-      {
-        id: 1,
-        studentName: this.studentName,
-        studentEnrollment: this.studentEnrollment,
-        subject: 'Estrutura de Dados',
-        professor: 'Prof. Ana Costa',
-        classesToRecover: 2,
-        reason: 'Problemas de saúde',
-        requestDate: new Date(Date.now() - 86400000),
-        status: 'pending'
+  fetchMyRequests(): void {
+    const idNum = Number(this.currentUser?.id);
+    if (!idNum) return;
+    this.makeupService.listMine(idNum).subscribe({
+      next: (items) => {
+        this.recoveryRequests = items.map((r) => ({
+          id: r.id,
+          studentName: this.studentName,
+          studentEnrollment: this.studentEnrollment,
+          subject: r.subject,
+          professor: '',
+          classesToRecover: 1,
+          reason: r.reason,
+          requestDate: new Date(r.createdAt),
+          status: (r.status?.toLowerCase() as 'pending' | 'approved' | 'rejected') || 'pending'
+        }));
+      },
+      error: () => {
+        this.recoveryRequests = [];
       }
-    ];
+    });
+  }
+
+  // Busca notas/faltas reais do backend e aplica sobre a matéria de Programação Web
+  private fetchMyGradesFromBackend(): void {
+    const idNum = Number(this.currentUser?.id);
+    if (!idNum) return;
+    this.matriculaService.listMine().subscribe({
+      next: (items: MatriculaItem[]) => {
+        // Exemplo: usar a turma ADS4A-MANHA para refletir em Programação Web
+        const m = items.find(i => i.turmaId === 'ADS4A-MANHA');
+        if (m) {
+          const subject = this.subjects.find(s => s.name === 'Programação Web');
+          if (subject) {
+            if (typeof m.notaFinal === 'number') subject.grade = m.notaFinal;
+            if (typeof m.faltas === 'number') subject.absences = m.faltas;
+            this.averageGrade.set(this.calculateAverage());
+            this.totalClassesToRecover.set(this.subjects.reduce((sum, s) => sum + s.classesToRecover, 0));
+          }
+        }
+      },
+      error: () => { /* silencioso */ }
+    });
+  }
+
+  clearMine(status: 'PENDING' | 'APPROVED' | 'REJECTED'): void {
+    const idNum = Number(this.currentUser?.id);
+    if (!idNum) return;
+    this.makeupService.deleteMineByStatus(idNum, status).subscribe({
+      next: () => this.fetchMyRequests(),
+      error: () => this.showInfoMessage('Erro', 'Falha ao limpar solicitações. Tente novamente.')
+    });
+  }
+
+  clearAllMine(): void {
+    const idNum = Number(this.currentUser?.id);
+    if (!idNum) return;
+    forkJoin([
+      this.makeupService.deleteMineByStatus(idNum, 'PENDING'),
+      this.makeupService.deleteMineByStatus(idNum, 'APPROVED'),
+      this.makeupService.deleteMineByStatus(idNum, 'REJECTED')
+    ]).subscribe({
+      next: () => this.fetchMyRequests(),
+      error: () => this.showInfoMessage('Erro', 'Falha ao limpar solicitações. Tente novamente.')
+    });
   }
 
   getRequestStatusText(status: string): string {
