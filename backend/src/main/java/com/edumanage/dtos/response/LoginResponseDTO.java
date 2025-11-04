@@ -1,5 +1,10 @@
 package com.edumanage.dtos.response;
 
+/**
+ * DTO de resposta para operações de autenticação (login).
+ * Representa os dados do usuário autenticado, incluindo identificador,
+ * nome, email, mensagem de resposta e tipo de usuário (student, teacher, coordinator).
+ */
 public class LoginResponseDTO {
 	private Long id;
 	private String name;

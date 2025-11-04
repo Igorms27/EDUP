@@ -1,3 +1,8 @@
+/**
+ * Serviço responsável pela autenticação e gerenciamento de usuários.
+ * Fornece métodos para login, logout, verificação de autenticação e gerenciamento do estado
+ * do usuário autenticado, incluindo persistência no localStorage e navegação baseada no tipo de usuário.
+ */
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';

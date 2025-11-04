@@ -1,3 +1,9 @@
+/**
+ * Componente do dashboard do professor.
+ * Gerencia turmas e alunos, permitindo visualizar e atualizar notas e faltas dos estudantes,
+ * calcular status de aprovação/reprovação, gerenciar comunicação via chat com alunos
+ * e sincronizar dados com o backend através do MatriculaService.
+ */
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +22,6 @@ interface Student {
   maxAbsences: number;
   classesToRecover: number;
   status: 'approved' | 'recovery' | 'failed';
-  // Se definido, representa o aluno REAL no backend
   realAlunoId?: number;
 }
 
@@ -26,7 +31,6 @@ interface Class {
   students: Student[];
   schedule: string;
   room: string;
-  // Identificador usado no backend para a turma mockada
   turmaKey: string;
 }
 
@@ -64,7 +68,7 @@ export class ProfessorDashboardComponent implements OnInit {
       schedule: 'Segunda e Quarta - 08:00 às 10:00',
       room: 'Lab 101',
       students: [
-        // Vincule um aluno real do backend aqui (ajuste o ID conforme existir no BD)
+        
         { id: 1, realAlunoId: 1, name: 'João Silva Santos', enrollment: 'ADS2024001', email: 'joao.silva@email.com', grade: 8.5, absences: 3, maxAbsences: 20, classesToRecover: 0, status: 'approved' },
         { id: 2, name: 'Ana Costa Lima', enrollment: 'ADS2024002', email: 'ana.costa@email.com', grade: 7.2, absences: 5, maxAbsences: 20, classesToRecover: 0, status: 'approved' },
         { id: 3, name: 'Carlos Mendes', enrollment: 'ADS2024003', email: 'carlos.mendes@email.com', grade: 6.8, absences: 8, maxAbsences: 20, classesToRecover: 2, status: 'recovery' },

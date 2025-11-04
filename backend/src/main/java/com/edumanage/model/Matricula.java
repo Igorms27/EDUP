@@ -1,5 +1,11 @@
 package com.edumanage.model;
 
+/**
+ * Entidade JPA que representa a matrícula de um aluno em uma turma.
+ * Mapeia a tabela "matriculas" e contém informações sobre a relação entre aluno e turma,
+ * incluindo nota final, faltas e timestamp de atualização. Possui constraint única
+ * para garantir que um aluno só possa ter uma matrícula por turma.
+ */
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

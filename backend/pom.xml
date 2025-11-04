@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Arquivo de configuração Maven (POM - Project Object Model) do backend.
+    Define as dependências, configurações de build e versões do projeto Spring Boot,
+    incluindo Spring Web, Spring Data JPA, MySQL Connector, validação e ferramentas de desenvolvimento.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>

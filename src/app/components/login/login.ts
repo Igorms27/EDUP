@@ -1,3 +1,9 @@
+/**
+ * Componente de login da aplicação.
+ * Gerencia o formulário de autenticação com validação de email e senha,
+ * realiza o processo de login através do AuthService e exibe mensagens de erro
+ * quando as credenciais são inválidas.
+ */
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';

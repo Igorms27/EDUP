@@ -1,3 +1,8 @@
+/**
+ * Componente raiz da aplicação Angular.
+ * Define o componente principal que será renderizado na aplicação, contendo o RouterOutlet
+ * para gerenciar a navegação entre as rotas da aplicação.
+ */
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 

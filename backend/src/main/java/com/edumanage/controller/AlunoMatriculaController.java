@@ -1,5 +1,10 @@
 package com.edumanage.controller;
 
+/**
+ * Controller REST para consulta de matrículas por aluno.
+ * Fornece endpoints para listar todas as matrículas de um aluno específico,
+ * permitindo que estudantes visualizem suas notas e faltas em todas as turmas.
+ */
 import com.edumanage.dtos.response.MatriculaResponseDTO;
 import com.edumanage.service.MatriculaService;
 import org.springframework.http.ResponseEntity;

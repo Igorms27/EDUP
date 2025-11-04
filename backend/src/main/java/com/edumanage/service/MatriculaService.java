@@ -1,5 +1,10 @@
 package com.edumanage.service;
 
+/**
+ * Serviço responsável pelo gerenciamento de matrículas de alunos em turmas.
+ * Fornece operações para listar matrículas por turma ou por aluno, obter matrícula específica,
+ * criar ou atualizar matrículas (upsert) com notas e faltas, e converter entidades para DTOs.
+ */
 import com.edumanage.dtos.request.MatriculaRequestDTO;
 import com.edumanage.dtos.response.MatriculaResponseDTO;
 import com.edumanage.model.Matricula;

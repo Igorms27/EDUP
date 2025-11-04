@@ -1,5 +1,11 @@
 package com.edumanage.dtos.response;
 
+/**
+ * DTO de resposta para operações relacionadas a matrículas.
+ * Representa os dados de uma matrícula de aluno em turma, incluindo
+ * identificador do aluno, identificador da turma, nota final, faltas
+ * e timestamp de última atualização.
+ */
 import java.math.BigDecimal;
 import java.time.Instant;
 

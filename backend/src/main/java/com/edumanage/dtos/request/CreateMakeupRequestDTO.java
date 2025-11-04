@@ -1,8 +1,14 @@
 package com.edumanage.dtos.request;
 
+/**
+ * DTO de requisição para criação de solicitações de recuperação de aulas.
+ * Representa os dados necessários para criar uma solicitação de makeup,
+ * incluindo matéria e motivo obrigatórios, e data/horário opcionais
+ * que podem ser definidos posteriormente pelo coordenador.
+ */
 public class CreateMakeupRequestDTO {
-    private String date;   // opcional: ISO yyyy-MM-dd (definido pelo coordenador)
-    private String time;   // opcional: HH:mm (definido pelo coordenador)
+    private String date;   
+    private String time;   
     private String subject;
     private String reason;
 

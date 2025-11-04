@@ -1,5 +1,10 @@
 package com.edumanage.controller;
 
+/**
+ * Controller REST para gerenciamento de matrículas por professores.
+ * Fornece endpoints para listar matrículas de uma turma, obter matrícula específica
+ * de um aluno e criar/atualizar matrículas com notas e faltas.
+ */
 import com.edumanage.dtos.request.MatriculaRequestDTO;
 import com.edumanage.dtos.response.MatriculaResponseDTO;
 import com.edumanage.service.MatriculaService;

@@ -1,5 +1,10 @@
 package com.edumanage.controller;
 
+/**
+ * Controller REST para operações de autenticação.
+ * Fornece endpoints para realizar login de usuários (estudantes, professores e coordenadores),
+ * validando credenciais e retornando informações do usuário autenticado com seu respectivo tipo.
+ */
 import com.edumanage.dtos.request.LoginRequestDTO;
 import com.edumanage.dtos.response.LoginResponseDTO;
 import com.edumanage.model.Coordinator;

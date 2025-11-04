@@ -1,5 +1,11 @@
 package com.edumanage.model;
 
+/**
+ * Entidade JPA que representa uma solicitação de recuperação de aula.
+ * Mapeia a tabela "lesson_makeup_requests" e contém informações sobre solicitações
+ * de reposição de aulas feitas por estudantes, incluindo matéria, motivo, data/horário
+ * opcionais, status (PENDING, APPROVED, REJECTED) e timestamp de criação.
+ */
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

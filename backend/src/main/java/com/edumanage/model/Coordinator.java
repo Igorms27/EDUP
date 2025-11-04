@@ -1,5 +1,10 @@
 package com.edumanage.model;
 
+/**
+ * Entidade JPA que representa um coordenador no sistema.
+ * Mapeia a tabela "coordinators" e contém informações de identificação,
+ * nome, email e senha para autenticação.
+ */
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

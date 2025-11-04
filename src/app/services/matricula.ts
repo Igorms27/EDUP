@@ -1,3 +1,8 @@
+/**
+ * Serviço responsável pelo gerenciamento de matrículas de alunos em turmas.
+ * Fornece métodos para listar matrículas por turma, obter matrícula específica de um aluno,
+ * atualizar notas e faltas, e listar as matrículas do usuário autenticado.
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';

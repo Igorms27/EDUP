@@ -1,5 +1,10 @@
 package com.edumanage.dtos.response;
 
+/**
+ * DTO de resposta para operações relacionadas a solicitações de recuperação de aulas.
+ * Representa os dados de uma solicitação de makeup, incluindo identificador, estudante,
+ * matéria, motivo, data/horário opcionais, status e timestamp de criação.
+ */
 public class MakeupRequestResponseDTO {
     private Long id;
     private Long studentId;

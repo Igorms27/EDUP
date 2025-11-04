@@ -1,5 +1,10 @@
 package com.edumanage.dtos.request;
 
+/**
+ * DTO de requisição para operações de criação ou atualização de matrículas.
+ * Representa os dados necessários para atualizar nota final e faltas de um aluno
+ * em uma turma, com validações para garantir que a nota esteja entre 0.0 e 10.0.
+ */
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;

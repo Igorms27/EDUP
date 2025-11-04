@@ -1,5 +1,10 @@
 package com.edumanage.model;
 
+/**
+ * Entidade JPA que representa um estudante no sistema.
+ * Mapeia a tabela "students" e contém informações de identificação,
+ * nome, email e senha para autenticação.
+ */
 import jakarta.persistence.*;
 
 @Entity

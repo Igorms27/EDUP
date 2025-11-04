@@ -1,5 +1,11 @@
 package com.edumanage.config;
 
+/**
+ * Configuração CORS (Cross-Origin Resource Sharing) para permitir requisições
+ * do frontend Angular em desenvolvimento (localhost:4200). Define permissões
+ * para origens, métodos HTTP, headers e credenciais, aplicando a configuração
+ * globalmente para todas as rotas da API.
+ */
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;

@@ -1,3 +1,8 @@
+/**
+ * Serviço responsável pelo gerenciamento de solicitações de recuperação de aulas (makeup).
+ * Fornece métodos para criar solicitações de recuperação, listar por status, aprovar/rejeitar
+ * solicitações, listar solicitações de um estudante específico e excluir solicitações por status.
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,8 +11,8 @@ import { AuthService, User } from './auth';
 export type MakeupStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface CreateMakeupPayload {
-  date?: string;   // yyyy-MM-dd (opcional)
-  time?: string;   // HH:mm (opcional)
+  date?: string;   
+  time?: string;   
   subject: string;
   reason: string;
 }

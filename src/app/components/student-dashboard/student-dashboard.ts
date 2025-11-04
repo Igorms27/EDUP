@@ -1,3 +1,10 @@
+/**
+ * Componente do dashboard do estudante.
+ * Permite visualizar notas, faltas e status de aprovação das matérias, solicitar recuperação
+ * de aulas, comunicar-se com professores via chat e acompanhar o status das solicitações
+ * de recuperação enviadas, sincronizando dados com o backend através dos serviços MakeupService
+ * e MatriculaService.
+ */
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -138,7 +145,7 @@ export class StudentDashboardComponent implements OnInit {
   requestClassRecovery(): void {
     const subjectsToRecover = this.subjects.filter(s => s.classesToRecover > 0);
     if (subjectsToRecover.length === 0) {
-      // Substituir alert por modal
+     
       this.showInfoMessage('Nenhuma aula para repor', 'Você não tem aulas para repor no momento.');
       return;
     }
@@ -148,13 +155,13 @@ export class StudentDashboardComponent implements OnInit {
     this.showSubjectSelectionModal = true;
   }
 
-  // Nova função para selecionar matéria do card
+  
   selectSubjectForRecovery(subject: Subject): void {
     this.showSubjectSelectionModal = false;
     this.openRecoveryModal(subject);
   }
 
-  // Nova função para fechar modal de seleção
+  
   closeSubjectSelectionModal(): void {
     this.showSubjectSelectionModal = false;
     this.subjectsNeedingRecovery = [];
@@ -248,7 +255,7 @@ export class StudentDashboardComponent implements OnInit {
     if (!idNum) return;
     this.matriculaService.listMine().subscribe({
       next: (items: MatriculaItem[]) => {
-        // Exemplo: usar a turma ADS4A-MANHA para refletir em Programação Web
+        
         const m = items.find(i => i.turmaId === 'ADS4A-MANHA');
         if (m) {
           const subject = this.subjects.find(s => s.name === 'Programação Web');
@@ -260,7 +267,7 @@ export class StudentDashboardComponent implements OnInit {
           }
         }
       },
-      error: () => { /* silencioso */ }
+      error: () => {  }
     });
   }
 

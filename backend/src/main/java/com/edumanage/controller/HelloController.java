@@ -1,5 +1,10 @@
 package com.edumanage.controller;
 
+/**
+ * Controller de teste e verificação de saúde da aplicação.
+ * Fornece endpoints simples para verificar se a API está funcionando corretamente,
+ * incluindo mensagem de boas-vindas e endpoint de health check.
+ */
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -7,9 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Controller de teste para verificar se a aplicação está funcionando.
- */
 @RestController
 @RequestMapping("/api")
 public class HelloController {

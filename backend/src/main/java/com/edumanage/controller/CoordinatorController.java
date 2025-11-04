@@ -1,5 +1,10 @@
 package com.edumanage.controller;
 
+/**
+ * Controller REST para gerenciamento de coordenadores.
+ * Fornece endpoints para listar todos os coordenadores e criar novos coordenadores
+ * no sistema.
+ */
 import com.edumanage.model.Coordinator;
 import com.edumanage.repository.CoordinatorRepository;
 import org.springframework.http.ResponseEntity;

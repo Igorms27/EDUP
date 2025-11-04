@@ -1,5 +1,10 @@
 package com.edumanage.dtos.request;
 
+/**
+ * DTO de requisição para operações de autenticação (login).
+ * Representa as credenciais do usuário necessárias para realizar o login,
+ * incluindo email e senha.
+ */
 public class LoginRequestDTO {
 
 	private String email;

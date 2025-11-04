@@ -1,5 +1,10 @@
 package com.edumanage.controller;
 
+/**
+ * Controller REST para gerenciamento de solicitações de recuperação de aulas (makeup).
+ * Fornece endpoints para criar solicitações, listar por status ou por estudante,
+ * aprovar/rejeitar solicitações e excluir solicitações por status ou por estudante e status.
+ */
 import com.edumanage.dtos.request.CreateMakeupRequestDTO;
 import com.edumanage.dtos.response.MakeupRequestResponseDTO;
 import com.edumanage.model.LessonMakeupRequest;
